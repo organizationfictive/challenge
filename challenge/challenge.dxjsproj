@@ -18,6 +18,8 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="datamapper\accountMapper.ts" />
+    <TypeScriptCompile Include="datamapper\dataMapper.common.ts" />
     <TypeScriptCompile Include="index.ts" />
     <Content Include="index.d.ts" />
     <Content Include="index.html" />
@@ -76,6 +78,8 @@
     <Content Include="ts\knockout.d.ts" />
     <Content Include="views\home.dxview" />
     <Content Include="views\home.css" />
+    <TypeScriptCompile Include="models\accountModel.ts" />
+    <TypeScriptCompile Include="models\model.common.ts" />
     <TypeScriptCompile Include="views\home.ts" />
     <Content Include="views\about.html" />
     <Content Include="views\blank.html" />
@@ -95,6 +99,8 @@
     <Folder Include="layouts\Simple\" />
     <Folder Include="layouts\SlideOut\" />
     <Folder Include="layouts\Split\" />
+    <Folder Include="models" />
+    <Folder Include="datamapper" />
     <Folder Include="ts\" />
     <Folder Include="views\" />
   </ItemGroup>
