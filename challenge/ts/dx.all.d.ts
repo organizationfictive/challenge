@@ -326,24 +326,27 @@ declare module DevExpress  {
             /** Creates the Query object for the underlying array. */
             createQuery(): Query;
         }
+                interface Promise {
+            then(doneFn?: Function, failFn?: Function, progressFn?: Function): Promise;
+        }
         export interface CustomStoreOptions extends StoreOptions {
             /** The user implementation of the byKey(key, extraOptions) method. */
-            byKey?: (key: any) => JQueryPromise<any>;
+            byKey?: (key: any) => Promise;
             /**
              * User implementation of the byKey(key, extraOptions) method.
              * @deprecated Use "byKey" instead
              */
-            lookup?: (key: any) => JQueryPromise<any>;
+            lookup?: (key: any) => Promise;
             /** The user implementation of the insert(values) method. */
-            insert?: (values: Object) => JQueryPromise<any>;
+            insert?: (values: Object) => Promise;
             /** The user implementation of the load(options) method. */
-            load?: (options?: LoadOptions) => JQueryPromise<any>;
+            load?: (options?: LoadOptions) => Promise;
             /** The user implementation of the remove(key) method. */
-            remove?: (key: any) => JQueryPromise<any>;
+            remove?: (key: any) => Promise;
             /** The user implementation of the totalCount(options) method. */
-            totalCount?: () => JQueryPromise<number>;
+            totalCount?: () => Promise;
             /** The user implementation of the update(key, values) method. */
-            update?: (key: any, values: Object) => JQueryPromise<any>;
+            update?: (key: any, values: Object) => Promise;
         }
         /** A Store object that enables you to implement your own data access logic. */
         export class CustomStore extends Store {
@@ -726,11 +729,15 @@ declare module DevExpress  {
         /** An object that serves as a namespace for methods displaying a message in an application/site. */
         export var dialog: {
             /** Creates an alert dialog message containing a single "OK" button. */
-            alert(message: string, title: string): JQueryDeferred<void>;
+            alert(message: string, title: string): JQueryPromise<void>;
             /** Creates a confirm dialog that contains "Yes" and "No" buttons. */
-            confirm(message: string, title: string): JQueryDeferred<boolean>;
-                        /** Creates a custom dialog using the options specified by the passed configuration object. */
-            custom(options: Object): JQueryDeferred<any>;
+            confirm(message: string, title: string): JQueryPromise<boolean>;
+            /** Creates a custom dialog using the options specified by the passed configuration object. */
+            custom(options: { title?: string; message?: string; buttons?: Array<Object>; }): {
+                show(): JQueryPromise<any>;
+                hide(): void;
+                hide(value: any): void;
+            };
         };
         /** Creates a toast message. */
         export function notify(message: any, type: string, displayTime: number): void;
@@ -1069,6 +1076,10 @@ declare module DevExpress.ui  {
         searchEnabled?: boolean;
         /** Specifies whether or not the widget displays items by pages. */
         pagingEnabled?: boolean;
+        /** The text or HTML markup displayed by the widget if the item collection is empty. */
+        noDataText?: string;
+        /** A handler for the selectionChanged event. */
+        onSelectionChanged?: Function;
     }
     /** A base class for drop-down list widgets. */
     export class dxDropDownList extends dxDropDownEditor {
@@ -1099,6 +1110,7 @@ declare module DevExpress.ui  {
         /** Specifies the dxToast widget type. */
         type?: string;
         width?: any;
+        closeOnBackButton?: boolean;
     }
     /** The toast message widget. */
     export class dxToast extends dxOverlay {
@@ -1152,6 +1164,8 @@ declare module DevExpress.ui  {
         valueUpdateEvent?: string;
         /** Specifies whether or not the widget checks the inner text for spelling mistakes. */
         spellcheck?: boolean;
+        /** Specifies HTML attributes applied to the inner input element of the widget. */
+        attr?: Object;
     }
     /** A base class for text editing widgets. */
     export class dxTextEditor extends Editor {
@@ -1215,6 +1229,8 @@ declare module DevExpress.ui  {
         fieldTemplate?: any;
         /** The text that is provided as a hint in the select box editor. */
         placeholder?: string;
+        /** Specifies whether or not the widget allows an end-user to enter a custom value. */
+        editEnabled?: boolean;
     }
     /** A widget that allows you to select an item in a dropdown list. */
     export class dxSelectBox extends dxDropDownList {
@@ -1351,8 +1367,10 @@ declare module DevExpress.ui  {
         /** A template to be used for rendering the widget title. */
         titleTemplate?: any;
         width?: any;
-        /** Specifies buttons displayed on the top or bottom toolbar of the popup window. */
+        /** Specifies items displayed on the top or bottom toolbar of the popup window. */
         buttons?: Array<any>;
+        /** Specifies whether or not the widget displays the Close button. */
+        showCloseButton?: boolean;
         /** A handler for the titleRendered event. */
         onTitleRendered?: Function;
     }
@@ -1380,6 +1398,8 @@ declare module DevExpress.ui  {
     export class dxPopover extends dxPopup {
         constructor(element: JQuery, options?: dxPopoverOptions);
         constructor(element: Element, options?: dxPopoverOptions);
+        /** Displays the widget for the specified target element. */
+        show(target?: any): JQueryPromise<void>;
     }
     export interface dxOverlayOptions extends WidgetOptions {
         /** An object that defines the animation options of the widget. */
@@ -1388,7 +1408,7 @@ declare module DevExpress.ui  {
         closeOnBackButton?: boolean;
         /** A Boolean value specifying whether or not the widget is closed if a user clicks outside of the overlapping window. */
         closeOnOutsideClick?: any;
-        /** A template to be used for rendering the widget content. */
+        /** A template to be used for rendering widget content. */
         contentTemplate?: any;
         /** Specifies whether widget content is rendered when the widget is shown or when rendering the widget. */
         deferRendering?: boolean;
@@ -1433,13 +1453,15 @@ declare module DevExpress.ui  {
         show(): JQueryPromise<void>;
         /** Toggles the visibility of the widget. */
         toggle(showing: boolean): JQueryPromise<void>;
+        /** A static method that specifies the default z-index for all overlay widgets. */
+        static baseZIndex(zIndex: number): void;
     }
     export interface dxNumberBoxOptions extends dxTextEditorOptions {
         /** The maximum value accepted by the number box. */
         max?: number;
         /** The minimum value accepted by the number box. */
         min?: number;
-        /** Specifies whether to show spin buttons. */
+        /** Specifies whether or not to show spin buttons. */
         showSpinButtons?: boolean;
         useTouchSpinButtons?: boolean;
         /** Specifies by which value the widget value changes when a spin button is clicked. */
@@ -1452,7 +1474,9 @@ declare module DevExpress.ui  {
         constructor(element: JQuery, options?: dxNumberBoxOptions);
         constructor(element: Element, options?: dxNumberBoxOptions);
     }
-    export interface dxNavBarOptions extends dxTabsOptions { }
+    export interface dxNavBarOptions extends dxTabsOptions {
+        scrollingEnabled?: boolean;
+    }
     /** A widget that contains items used to navigate through application views. */
     export class dxNavBar extends dxTabs {
         constructor(element: JQuery, options?: dxNavBarOptions);
@@ -1581,8 +1605,6 @@ declare module DevExpress.ui  {
         groupTemplate?: any;
         /** The text displayed on the button used to load the next page from the data source. */
         nextButtonText?: string;
-        /** The text or HTML markup displayed by the widget if there are no items satisfying the specified search condition. */
-        noDataText?: string;
         /** A handler for the pageLoading event. */
         onPageLoading?: Function;
         pageLoadingAction?: Function;
@@ -1758,7 +1780,7 @@ declare module DevExpress.ui  {
         selectionMode?: string;
         /** A Boolean value specifying whether the widget loads the next page automatically when you reach the bottom of the list or when a button is clicked. */
         showNextButton?: boolean;
-        /** A Boolean value specifying if the widget scrollbar is visible. */
+        /** Specifies when the widget shows the scrollbar. */
         showScrollbar?: boolean;
         /** Specifies whether or not the widget uses native scrolling. */
         useNativeScrolling?: boolean;
@@ -1980,6 +2002,8 @@ declare module DevExpress.ui  {
         constructor(element: Element, options?: dxBoxOptions);
     }
     export interface dxAutocompleteOptions extends dxDropDownListOptions {
+        /** Specifies the current value displayed by the widget. */
+        value?: string;
         /** The minimum number of characters that must be entered into the text box to begin a search. */
         minSearchLength?: number;
         /** Specifies the maximum count of items displayed by the widget. */
@@ -2077,7 +2101,7 @@ declare module DevExpress.ui  {
         /** A handler for the complete event. */
         onComplete?: Function;
     }
-    /** A widget used to indicate a progress. */
+    /** A widget used to indicate progress. */
     export class dxProgressBar extends dxTrackBar {
         constructor(element: JQuery, options?: dxProgressBarOptions);
         constructor(element: Element, options?: dxProgressBarOptions);
@@ -2159,7 +2183,7 @@ declare module DevExpress.ui  {
         constructor(element: JQuery, options?: dxSwitchOptions);
         constructor(element: Element, options?: dxSwitchOptions);
     }
-    export interface dxSlideoutOptions extends CollectionWidgetOptions {
+    export interface dxSlideOutOptions extends CollectionWidgetOptions {
         /** A Boolean value specifying whether or not the widget changes its state when interacting with a user. */
         activeStateEnabled?: boolean;
         /** A Boolean value specifying whether or not to display a grouped menu. */
@@ -2175,10 +2199,10 @@ declare module DevExpress.ui  {
         /** Indicates whether the menu can be shown/hidden by swiping the widget's main panel. */
         swipeEnabled?: boolean;
     }
-    /** The dxSlideOut widget allows you to slide-out the current view to reveal an item list. */
+    /** The widget that allows you to slide-out the current view to reveal an item list. */
     export class dxSlideOut extends CollectionWidget {
-        constructor(element: JQuery, options?: dxSlideoutOptions);
-        constructor(element: Element, options?: dxSlideoutOptions);
+        constructor(element: JQuery, options?: dxSlideOutOptions);
+        constructor(element: Element, options?: dxSlideOutOptions);
         /** Hides the widget's slide-out menu. */
         hideMenu(): JQueryPromise<void>;
         /** Displays the widget's slide-out menu. */
@@ -2241,12 +2265,18 @@ declare module DevExpress.ui  {
         popupWidth?: any;
         /** The height of the menu popup in pixels. */
         popupHeight?: any;
+        /** Specifies whether or not the drop-down menu is displayed. */
+        opened?: boolean;
     }
     /** A drop-down menu widget. */
     export class dxDropDownMenu extends Widget {
         constructor(element: JQuery, options?: dxDropDownEditorOptions);
         constructor(element: Element, options?: dxDropDownEditorOptions);
         /** This section lists the data source fields that are used in a default template for drop-down menu items. */
+        /** Opens the drop-down menu. */
+        open(): void;
+        /** Closes the drop-down menu. */
+        close(): void;
     }
     export interface dxActionSheetOptions extends CollectionWidgetOptions {
         cancelClickAction?: any;
@@ -2307,7 +2337,10 @@ declare module DevExpress.ui  {
     export interface dxTreeViewOptions extends CollectionWidgetOptions {
         /** Specifies whether a nested or plain array is used as a data source. */
         dataStructure?: string;
-        /** An array of currently expanded item objects. */
+        /**
+         * An array of currently expanded item objects.
+         * @deprecated Use item.expanded field instead
+         */
         expandedItems?: Array<any>;
         /** Specifies whether or not a check box is displayed at each tree view item. */
         showCheckBoxes?: boolean;
@@ -3077,30 +3110,35 @@ Searches grid records by a search string.
 }
 declare module DevExpress.viz.charts  {
     /** This section describes the fields and methods that can be used in code to manipulate the Series object. */
-    export interface baseSeries {
+    export interface BaseSeries {
         /** Provides information about the state of the series object. */
         fullState: number;
         /** Returns the type of the series. */
         type: string;
         /** Unselects all the selected points of the series. The points are displayed in an initial style. */
         clearSelection(): void;
-        /** Gets a point from the series point collection based on the specified argument. */
+		/**
+         * Gets a point from the series point collection based on the specified argument.
+         * @deprecated baseSeriesObjectmethod_getPointsByArg
+         */
         getPointByArg(pointArg: any): Object;
+        /** Gets points from the series point collection based on the specified argument. */
+        getPointsByArg(pointArg: any): Array<BasePoint>;
         /** Gets a point from the series point collection based on the specified point position. */
         getPointByPos(positionIndex: number): Object;
         /** Selects the series. The series is displayed in a 'selected' style until another series is selected or the current series is deselected programmatically. */
         select(): void;
         /** Selects the specified point. The point is displayed in a 'selected' style. */
-        selectPoint(point: basePoint): void;
+        selectPoint(point: BasePoint): void;
         /** Deselects the specified point. The point is displayed in an initial style. */
-        deselectPoint(point: basePoint): void;
+        deselectPoint(point: BasePoint): void;
         /** Returns an array of all points in the series. */
-        getAllPoints(): Array<basePoint>;
+        getAllPoints(): Array<BasePoint>;
         /** Returns visible series points. */
-        getVisiblePoints(): Array<basePoint>;
+        getVisiblePoints(): Array<BasePoint>;
     }
     /** This section describes the methods that can be used in code to manipulate the Point object. */
-    export interface basePoint {
+    export interface BasePoint {
         /** Provides information about the state of the point object. */
         fullState: number;
         /** Returns the point's argument value that was set in the data source. */
@@ -3126,10 +3164,10 @@ declare module DevExpress.viz.charts  {
         /** Allows you to obtain the label of a series point. */
         getLabel(): any;
         /** Returns the series object to which the point belongs. */
-        series: baseSeries;
+        series: BaseSeries;
     }
     /** This section describes the fields and methods that can be used in code to manipulate the Series object. */
-    export interface chartSeries extends baseSeries {
+    export interface ChartSeries extends BaseSeries {
         /** Returns the name of the series pane. */
         pane: string;
         /** Returns the name of the value axis of the series. */
@@ -3148,13 +3186,13 @@ declare module DevExpress.viz.charts  {
         isVisible(): boolean;
         /** Makes a particular series visible. */
         show(): void;
-        selectPoint(point: chartPoint): void;
-        deselectPoint(point: chartPoint): void;
-        getAllPoints(): Array<chartPoint>;
-        getVisiblePoints(): Array<chartPoint>;
+        selectPoint(point: ChartPoint): void;
+        deselectPoint(point: ChartPoint): void;
+        getAllPoints(): Array<ChartPoint>;
+        getVisiblePoints(): Array<ChartPoint>;
     }
     /** This section describes the methods that can be used in code to manipulate the Point object. */
-    export interface chartPoint extends basePoint {
+    export interface ChartPoint extends BasePoint {
         /** Contains the close value of the point. This field is useful for points belonging to a series of the candle stick or stock type only. */
         originalCloseValue: any;
         /** Contains the high value of the point. This field is useful for points belonging to a series of the candle stick or stock type only. */
@@ -3169,7 +3207,7 @@ declare module DevExpress.viz.charts  {
         size: any;
         /** Gets the parameters of the point's minimum bounding rectangle (MBR). */
         getBoundingRect(): { x: number; y: number; width: number; height: number; };
-        series: chartSeries;
+        series: ChartSeries;
     }
     /** This section describes the methods that can be used in code to manipulate the Label object. */
     export interface Label {
@@ -3180,14 +3218,14 @@ declare module DevExpress.viz.charts  {
         /** Shows the point label. */
         show(): void;
     }
-    export interface pieSeries extends baseSeries {
-        selectPoint(point: piePoint): void;
-        deselectPoint(point: piePoint): void;
-        getAllPoints(): Array<piePoint>;
-        getVisiblePoints(): Array<piePoint>;
+    export interface PieSeries extends BaseSeries {
+        selectPoint(point: PiePoint): void;
+        deselectPoint(point: PiePoint): void;
+        getAllPoints(): Array<PiePoint>;
+        getVisiblePoints(): Array<PiePoint>;
     }
     /** This section describes the methods that can be used in code to manipulate the Point object. */
-    export interface piePoint extends basePoint {
+    export interface PiePoint extends BasePoint {
         /** Gets the percentage value of the specific point. */
         percent: any;
         /** Provides information about the visibility state of a point. */
@@ -3196,10 +3234,10 @@ declare module DevExpress.viz.charts  {
         show(): void;
         /** Hides a specific point. */
         hide(): void;
-        series: pieSeries;
+        series: PieSeries;
     }
     /** This section describes the fields and methods that can be used in code to manipulate the Series object. */
-    export interface polarSeries extends baseSeries {
+    export interface PolarSeries extends BaseSeries {
         /** Returns the name of the value axis of the series. */
         axis: string;
         /** Returns the name of the series. */
@@ -3216,16 +3254,14 @@ declare module DevExpress.viz.charts  {
         isVisible(): boolean;
         /** Makes a particular series visible. */
         show(): void;
-        selectPoint(point: polarPoint): void;
-        deselectPoint(point: polarPoint): void;
-        getAllPoints(): Array<polarPoint>;
-        getVisiblePoints(): Array<polarPoint>;
+        selectPoint(point: PolarPoint): void;
+        deselectPoint(point: PolarPoint): void;
+        getAllPoints(): Array<PolarPoint>;
+        getVisiblePoints(): Array<PolarPoint>;
     }
     /** This section describes the methods that can be used in code to manipulate the Point object. */
-    export interface polarPoint extends basePoint {
-        /** Gets the parameters of the point's minimum bounding rectangle (MBR). */
-        getBoundingRect(): Object;
-        series: polarSeries;
+    export interface PolarPoint extends BasePoint {
+        series: PolarSeries;
     }
     export interface Strip {
         /** Specifies a color for a strip. */
@@ -3608,8 +3644,6 @@ declare module DevExpress.viz.charts  {
         tagField?: string;
         /** Specifies the data source field that provides values for series points. */
         valueField?: string;
-        /** Specifies the required type for series values. */
-        valueType?: string;
     }
     export interface PieSeriesConfig extends CommonPieSeriesConfig {
         /** Sets the series type. */
@@ -3632,8 +3666,10 @@ declare module DevExpress.viz.charts  {
         font?: viz.core.Font;
         /** Specifies the position of the constant line label relative to the chart plot. */
         position?: string;
+        visible?: boolean;
     }
-	export interface PolarCommonConstantLineLabel {
+    export interface PolarCommonConstantLineLabel {
+        visible?: boolean;
 		/** Specifies font options for a constant line label. */
         font?: viz.core.Font;
 	}
@@ -3670,11 +3706,11 @@ declare module DevExpress.viz.charts  {
         alignment?: string;
 		/** Specifies the overlap resolving algorithm to be applied to axis labels. */
         overlappingBehavior?: {
-			/** Specifies the overlap resolving algorithm to be applied to series point labels. */
+			/** Specifies how to arrange axis labels. */
             mode?: string;
-            /** Specifies the angle used to rotate axis labels to resolve overlap. */
+            /** Specifies the angle used to rotate axis labels. */
             rotationAngle?: number;
-            /** Specifies the spacing that must be set between staggered rows when the 'stagger' algorithm is applied to resolve label overlap. */
+            /** Specifies the spacing that must be set between staggered rows when the 'stagger' algorithm is applied. */
             staggeringSpacing?: number;
         };
     }
@@ -3826,13 +3862,13 @@ declare module DevExpress.viz.charts  {
 		/** An object defining constant line label options. */
         label?: ChartConstantLineLabel;
         /** Specifies a value to be displayed by a constant line. */
-        value?: number;
+        value?: any;
 	}
 	export interface PolarConstantLine extends PolarCommonConstantLineStyle {
 	/** An object defining constant line label options. */
         label?: PolarConstantLineLabel;
         /** Specifies a value to be displayed by a constant line. */
-        value?: number;
+        value?: any;
 	}
 	export interface Axis {
 	    /** Specifies a coefficient for dividing the value axis. */
@@ -3884,7 +3920,7 @@ declare module DevExpress.viz.charts  {
 	export interface PolarArgumentAxis extends PolarAxis, ArgumentAxis {
 	    /** Specifies a start angle for the argument axis in degrees. */
         startAngle?: number;
-        /** Specifies whether to display the first point at the angle specified by the startAngle option. */
+        /** Specifies whether or not to display the first point at the angle specified by the startAngle option. */
         firstPointOnStartAngle?: boolean;
         /** Specifies the period of the argument values in the data source. */
         period?: number;
@@ -4107,7 +4143,7 @@ declare module DevExpress.viz.charts  {
         /** Specifies the kind of information to display in a tooltip. */
         shared?: boolean;
     }
-    export interface ChartOptions extends AdvancedOptions<chartPoint, chartSeries> {
+    export interface dxChartOptions extends AdvancedOptions<ChartPoint, ChartSeries> {
         /** Specifies a value indicating whether all bars in a series must have the same width, or may have different widths if any points in other series are missing. */
         equalBarWidth?: any;
         adaptiveLayout?: {
@@ -4170,8 +4206,8 @@ declare module DevExpress.viz.charts  {
         series?: Array<SeriesConfig>;
         legendClick?: any;
         seriesClick?: any;
-        seriesHoverChanged?: (series: chartSeries) => void;
-        seriesSelectionChanged?: (series: chartSeries) => void;
+        seriesHoverChanged?: (series: ChartSeries) => void;
+        seriesSelectionChanged?: (series: ChartSeries) => void;
         /** Defines options for the series template. */
         seriesTemplate?: SeriesTemplate;
         /** Specifies tooltip options. */
@@ -4200,14 +4236,14 @@ declare module DevExpress.viz.charts  {
     }
     /** A widget used to embed charts into HTML JS applications. */
     export class dxChart extends BaseChart {
-        constructor(element: JQuery, options?: ChartOptions);
-        constructor(element: Element, options?: ChartOptions);
+        constructor(element: JQuery, options?: dxChartOptions);
+        constructor(element: Element, options?: dxChartOptions);
         /** Returns an array of all series in the chart. */
-        getAllSeries(): Array<chartSeries>;
+        getAllSeries(): Array<ChartSeries>;
         /** Gets a series within the chart's series collection by the specified name (see the name option). */
-        getSeriesByName(seriesName: string): chartSeries;
+        getSeriesByName(seriesName: string): ChartSeries;
         /** Gets a series within the chart's series collection by its position number. */
-        getSeriesByPos(seriesIndex: number): chartSeries;
+        getSeriesByPos(seriesIndex: number): ChartSeries;
         /** Sets the specified start and end values for the chart's argument axis. */
         zoomArgument(startValue: any, endValue: any): void;
     }
@@ -4226,7 +4262,7 @@ declare module DevExpress.viz.charts  {
         /** Specifies the kind of information to display in a tooltip. */
         shared?: boolean;
     }
-    export interface PolarChartOptions extends AdvancedOptions<polarPoint, polarSeries> {
+    export interface dxPolarChartOptions extends AdvancedOptions<PolarPoint, PolarSeries> {
         /** Specifies a value indicating whether all bars in a series must have the same angle, or may have different angles if any points in other series are missing. */
         equalBarWidth?: boolean;
         /** Specifies adaptive layout options. */
@@ -4252,25 +4288,29 @@ declare module DevExpress.viz.charts  {
         seriesTemplate?: PolarSeriesTemplate;
         /** Specifies tooltip options. */
         tooltip?: PolarChartTooltip;
-        /** Specifies value axis options for the dxPolarChart widget. */
+        /** Specifies value axis options for the dxChart widget. */
         valueAxis?: PolarValueAxis;
     }
     /** A chart widget displaying data in a polar coordinate system. */
     export class dxPolarChart extends BaseChart {
-        constructor(element: JQuery, options?: PolarChartOptions);
-        constructor(element: Element, options?: PolarChartOptions);
+        constructor(element: JQuery, options?: dxPolarChartOptions);
+        constructor(element: Element, options?: dxPolarChartOptions);
         /** Returns an array of all series in the chart. */
-        getAllSeries(): Array<polarSeries>;
+        getAllSeries(): Array<PolarSeries>;
         /** Gets a series within the chart's series collection by the specified name (see the name option). */
-        getSeriesByName(seriesName: string): polarSeries;
+        getSeriesByName(seriesName: string): PolarSeries;
         /** Gets a series within the chart's series collection by its position number. */
-        getSeriesByPos(seriesIndex: number): polarSeries;
+        getSeriesByPos(seriesIndex: number): PolarSeries;
     }
     export interface PieLegend extends core.BaseLegend {
         /** Specifies what chart elements to highlight when a corresponding item in the legend is hovered over. */
         hoverMode?: string;
+        /** Specifies the text for a hint that appears when a user hovers the mouse pointer over a legend item. */
+        customizeHint?: (pointInfo: { pointName: string; pointIndex: number; pointColor: string; }) => string;
+        /** Specifies a callback function that returns the text to be displayed by a legend item. */
+        customizeText?: (pointInfo: { pointName: string; pointIndex: number; pointColor: string; }) => string;
     }
-    export interface PieChartOptions extends BaseChartOptions<piePoint> {
+    export interface dxPieChartOptions extends BaseChartOptions<PiePoint> {
         /** Specifies adaptive layout options. */
         adaptiveLayout?: {
             /** Specifies whether or not point labels can be hidden when the layout is adapting. */
@@ -4290,10 +4330,10 @@ declare module DevExpress.viz.charts  {
     }
     /** A circular chart widget for HTML JS applications. */
     export class dxPieChart extends BaseChart {
-        constructor(element: JQuery, options?: PieChartOptions);
-        constructor(element: Element, options?: PieChartOptions);
+        constructor(element: JQuery, options?: dxPieChartOptions);
+        constructor(element: Element, options?: dxPieChartOptions);
         /** Provides access to the dxPieChart series. */
-        getSeries(): pieSeries;
+        getSeries(): PieSeries;
     }
 }
 declare module DevExpress.viz.core  {
@@ -4716,7 +4756,7 @@ declare module DevExpress.viz.gauges  {
         /** Specifies the width of a value indicator in pixels. */
         width?: number;
     }
-    export interface LinearGaugeOptions extends BaseGaugeOptions {
+    export interface dxLinearGaugeOptions extends BaseGaugeOptions {
         /** Specifies the options required to set the geometry of the dxLinearGauge widget. */
         geometry?: {
             /** Indicates whether to display the dxLinearGauge widget vertically or horizontally. */
@@ -4730,8 +4770,8 @@ declare module DevExpress.viz.gauges  {
     }
     /** A widget that represents a gauge with a linear scale. */
     export class dxLinearGauge extends dxBaseGauge {
-        constructor(element: JQuery, options?: LinearGaugeOptions);
-        constructor(element: Element, options?: LinearGaugeOptions);
+        constructor(element: JQuery, options?: dxLinearGaugeOptions);
+        constructor(element: Element, options?: dxLinearGaugeOptions);
     }
     export interface CircularRangeContainer extends BaseRangeContainer {
         /** Specifies the orientation of the range container in the dxCircularGauge widget. */
@@ -4770,7 +4810,7 @@ declare module DevExpress.viz.gauges  {
         /** Specifies, in pixels, the width for a value indicator of a needle-like type. */
         width?: number;
     }
-    export interface CircularGaugeOptions extends BaseGaugeOptions {
+    export interface dxCircularGaugeOptions extends BaseGaugeOptions {
         /** Specifies the options required to set the geometry of the dxCircularGauge widget. */
         geometry?: {
             /** Specifies the end angle of the circular gauge's arc. */
@@ -4786,10 +4826,10 @@ declare module DevExpress.viz.gauges  {
     }
     /** A widget that represents a gauge with a circular scale. */
     export class dxCircularGauge extends dxBaseGauge {
-        constructor(element: JQuery, options?: CircularGaugeOptions);
-        constructor(element: Element, options?: CircularGaugeOptions);
+        constructor(element: JQuery, options?: dxCircularGaugeOptions);
+        constructor(element: Element, options?: dxCircularGaugeOptions);
     }
-    export interface BarGaugeOptions extends viz.core.BaseWidgetOptions, SharedGaugeOptions {
+    export interface dxBarGaugeOptions extends viz.core.BaseWidgetOptions, SharedGaugeOptions {
         /** Specifies a color for the remaining segment of the bar's track. */
         backgroundColor?: string;
         /** Specifies a distance between bars in pixels. */
@@ -4835,8 +4875,8 @@ declare module DevExpress.viz.gauges  {
     }
     /** A circular bar widget. */
     export class dxBarGauge extends viz.core.BaseWidget {
-        constructor(element: JQuery, options?: BarGaugeOptions);
-        constructor(element: Element, options?: BarGaugeOptions);
+        constructor(element: JQuery, options?: dxBarGaugeOptions);
+        constructor(element: Element, options?: dxBarGaugeOptions);
         /** Displays the loading indicator. */
         showLoadingIndicator(): void;
         /** Conceals the loading indicator. */
@@ -4983,7 +5023,7 @@ declare module DevExpress.viz.map  {
         /** Specifies the field that provides data to be used for sizing bubble markers. */
         sizeGroupingField?: string;
     }
-    export interface VectorMapOptions extends viz.core.BaseWidgetOptions {
+    export interface dxVectorMapOptions extends viz.core.BaseWidgetOptions {
         /** An object specifying options for the map areas. */
         areaSettings?: AreaSettings;
         /** Specifies the options for the map background. */
@@ -5082,8 +5122,8 @@ declare module DevExpress.viz.map  {
     }
     /** A vector map widget. */
     export class dxVectorMap extends viz.core.BaseWidget {
-        constructor(element: JQuery, options?: VectorMapOptions);
-        constructor(element: Element, options?: VectorMapOptions);
+        constructor(element: JQuery, options?: dxVectorMapOptions);
+        constructor(element: Element, options?: dxVectorMapOptions);
         /** Displays the loading indicator. */
         showLoadingIndicator(): void;
         /** Conceals the loading indicator. */
@@ -5117,7 +5157,7 @@ declare module DevExpress.viz.map  {
     }
 }
 declare module DevExpress.viz.rangeSelector  {
-    export interface RangeSelectorOptions extends viz.core.BaseWidgetOptions {
+    export interface dxRangeSelectorOptions extends viz.core.BaseWidgetOptions {
         /** Specifies the options for the range selector's background. */
         background?: {
             /** Specifies the background color for the dxRangeSelector. */
@@ -5352,8 +5392,8 @@ Specifies an interval between minor ticks.
     }
     /** A widget that allows end users to select a range of values on a scale. */
     export class dxRangeSelector extends viz.core.BaseWidget {
-        constructor(element: JQuery, options?: RangeSelectorOptions);
-        constructor(element: Element, options?: RangeSelectorOptions);
+        constructor(element: JQuery, options?: dxRangeSelectorOptions);
+        constructor(element: Element, options?: dxRangeSelectorOptions);
         /** Displays the loading indicator. */
         showLoadingIndicator(): void;
         /** Conceals the loading indicator. */
@@ -5388,7 +5428,7 @@ declare module DevExpress.viz.sparklines  {
         /** Redraws a widget. */
         render(): void;
     }
-    export interface BulletOptions extends BaseSparkline {
+    export interface dxBulletOptions extends BaseSparkline {
         /** Specifies a color for the bullet bar. */
         color?: string;
         /** Specifies an end value for the invisible scale. */
@@ -5410,10 +5450,10 @@ declare module DevExpress.viz.sparklines  {
     }
     /** A bullet graph widget. */
     export class dxBullet extends BaseSparkline {
-        constructor(element: JQuery, options?: BulletOptions);
-        constructor(element: Element, options?: BulletOptions);
+        constructor(element: JQuery, options?: dxBulletOptions);
+        constructor(element: Element, options?: dxBulletOptions);
     }
-    export interface SparklineOptions extends BaseSparklineOptions {
+    export interface dxSparklineOptions extends BaseSparklineOptions {
         /** Specifies the data source field that provides arguments for a sparkline. */
         argumentField?: string;
         /** Sets a color for the bars indicating negative values. Available for a sparkline of the bar type only. */
@@ -5457,192 +5497,301 @@ declare module DevExpress.viz.sparklines  {
     }
     /** A sparkline widget. */
     export class dxSparkline extends BaseSparkline {
-        constructor(element: JQuery, options?: SparklineOptions);
-        constructor(element: Element, options?: SparklineOptions);
+        constructor(element: JQuery, options?: dxSparklineOptions);
+        constructor(element: Element, options?: dxSparklineOptions);
     }
 }
 interface JQuery  {
-    dxProgressBar(options?: DevExpress.ui.dxProgressBarOptions): JQuery;
-    dxProgressBar(methodName: string, ...params: any[]): any;
-    dxProgressBar(methodName: "instance"): DevExpress.ui.dxProgressBar;
-    dxSlider(options?: DevExpress.ui.dxSliderOptions): JQuery;
-    dxSlider(methodName: string, ...params: any[]): any;
-    dxSlider(methodName: "instance"): DevExpress.ui.dxSlider;
-    dxRangeSlider(options?: DevExpress.ui.dxRangeSliderOptions): JQuery;
-    dxRangeSlider(methodName: string, ...params: any[]): any;
-    dxRangeSlider(methodName: "instance"): DevExpress.ui.dxRangeSlider;
-    dxFileUploader(options?: DevExpress.ui.dxFileUploaderOptions): JQuery;
-    dxFileUploader(methodName: string, ...params: any[]): any;
-    dxFileUploader(methodName: "instance"): DevExpress.ui.dxFileUploader;
+    dxProgressBar(): JQuery;
+    dxProgressBar(options: "instance"): DevExpress.ui.dxProgressBar;
+    dxProgressBar(options: string): any;
+    dxProgressBar(options: string, ...params: any[]): any;
+    dxProgressBar(options: DevExpress.ui.dxProgressBarOptions): JQuery;
+    dxSlider(): JQuery;
+    dxSlider(options: "instance"): DevExpress.ui.dxSlider;
+    dxSlider(options: string): any;
+    dxSlider(options: string, ...params: any[]): any;
+    dxSlider(options: DevExpress.ui.dxSliderOptions): JQuery;
+    dxRangeSlider(): JQuery;
+    dxRangeSlider(options: "instance"): DevExpress.ui.dxRangeSlider;
+    dxRangeSlider(options: string): any;
+    dxRangeSlider(options: string, ...params: any[]): any;
+    dxRangeSlider(options: DevExpress.ui.dxRangeSliderOptions): JQuery;
+    dxFileUploader(): JQuery;
+    dxFileUploader(options: "instance"): DevExpress.ui.dxFileUploader;
+    dxFileUploader(options: string): any;
+    dxFileUploader(options: string, ...params: any[]): any;
+    dxFileUploader(options: DevExpress.ui.dxFileUploaderOptions): JQuery;
     dxValidator(): JQuery;
-    dxValidator(methodName: string, ...params: any[]): any;
-    dxValidator(methodName: "instance"): DevExpress.ui.dxValidator;
+    dxValidator(options: "instance"): DevExpress.ui.dxValidator;
+    dxValidator(options: string): any;
+    dxValidator(options: string, ...params: any[]): any;
     dxValidatonGroup(): JQuery;
-    dxValidatonGroup(methodName: string, ...params: any[]): any;
-    dxValidatonGroup(methodName: "instance"): DevExpress.ui.dxValidationGroup;
+    dxValidatonGroup(options: "instance"): DevExpress.ui.dxValidationGroup;
+    dxValidatonGroup(options: string): any;
+    dxValidatonGroup(options: string, ...params: any[]): any;
     dxValidationSummary(): JQuery;
-    dxValidationSummary(methodName: string, ...params: any[]): any;
-    dxValidationSummary(methodName: "instance"): DevExpress.ui.dxValidationSummary;
-    dxTooltip(options?: DevExpress.ui.dxTooltipOptions): JQuery;
-    dxTooltip(methodName: string, ...params: any[]): any;
-    dxTooltip(methodName: "instance"): DevExpress.ui.dxTooltip;
-    dxDropDownList(options?: DevExpress.ui.dxDropDownListOptions): JQuery;
-    dxDropDownList(methodName: string, ...params: any[]): any;
-    dxDropDownList(methodName: "instance"): DevExpress.ui.dxDropDownList;
-    dxToolbar(options?: DevExpress.ui.dxToolbarOptions): JQuery;
-    dxToolbar(methodName: string, ...params: any[]): any;
-    dxToolbar(methodName: "instance"): DevExpress.ui.dxToolbar;
-    dxToast(options?: DevExpress.ui.dxToastOptions): JQuery;
-    dxToast(methodName: string, ...params: any[]): any;
-    dxToast(methodName: "instance"): DevExpress.ui.dxToast;
-    dxTextEditor(options?: DevExpress.ui.dxTextEditorOptions): JQuery;
-    dxTextEditor(methodName: string, ...params: any[]): any;
-    dxTextEditor(methodName: "instance"): DevExpress.ui.dxTextEditor;
-    dxTextBox(options?: DevExpress.ui.dxTextBoxOptions): JQuery;
-    dxTextBox(methodName: string, ...params: any[]): any;
-    dxTextBox(methodName: "instance"): DevExpress.ui.dxTextBox;
-    dxTextArea(options?: DevExpress.ui.dxTextAreaOptions): JQuery;
-    dxTextArea(methodName: string, ...params: any[]): any;
-    dxTextArea(methodName: "instance"): DevExpress.ui.dxTextArea;
-    dxTabs(options?: DevExpress.ui.dxTabsOptions): JQuery;
-    dxTabs(methodName: string, ...params: any[]): any;
-    dxTabs(methodName: "instance"): DevExpress.ui.dxTabs;
-    dxTabPanel(options?: DevExpress.ui.dxTabPanelOptions): JQuery;
-    dxTabPanel(methodName: string, ...params: any[]): any;
-    dxTabPanel(methodName: "instance"): DevExpress.ui.dxTabPanel;
-    dxSelectBox(options?: DevExpress.ui.dxSelectBoxOptions): JQuery;
-    dxSelectBox(methodName: string, ...params: any[]): any;
-    dxSelectBox(methodName: "instance"): DevExpress.ui.dxSelectBox;
-    dxScrollView(options?: DevExpress.ui.dxScrollViewOptions): JQuery;
-    dxScrollView(methodName: string, ...params: any[]): any;
-    dxScrollView(methodName: "instance"): DevExpress.ui.dxScrollView;
-    dxScrollable(options?: DevExpress.ui.dxScrollableOptions): JQuery;
-    dxScrollable(methodName: string, ...params: any[]): any;
-    dxScrollable(methodName: "instance"): DevExpress.ui.dxScrollable;
-    dxRadioGroup(options?: DevExpress.ui.dxRadioGroupOptions): JQuery;
-    dxRadioGroup(methodName: string, ...params: any[]): any;
-    dxRadioGroup(methodName: "instance"): DevExpress.ui.dxRadioGroup;
-    dxPopup(options?: DevExpress.ui.dxPopupOptions): JQuery;
-    dxPopup(methodName: string, ...params: any[]): any;
-    dxPopup(methodName: "instance"): DevExpress.ui.dxPopup;
-    dxPopover(options?: DevExpress.ui.dxPopoverOptions): JQuery;
-    dxPopover(methodName: string, ...params: any[]): any;
-    dxPopover(methodName: "instance"): DevExpress.ui.dxPopover;
-    dxOverlay(options?: DevExpress.ui.dxOverlayOptions): JQuery;
-    dxOverlay(methodName: string, ...params: any[]): any;
-    dxOverlay(methodName: "instance"): DevExpress.ui.dxOverlay;
-    dxNumberBox(options?: DevExpress.ui.dxNumberBoxOptions): JQuery;
-    dxNumberBox(methodName: string, ...params: any[]): any;
-    dxNumberBox(methodName: "instance"): DevExpress.ui.dxNumberBox;
-    dxNavBar(options?: DevExpress.ui.dxNavBarOptions): JQuery;
-    dxNavBar(methodName: string, ...params: any[]): any;
-    dxNavBar(methodName: "instance"): DevExpress.ui.dxNavBar;
-    dxMultiView(options?: DevExpress.ui.dxMultiViewOptions): JQuery;
-    dxMultiView(methodName: string, ...params: any[]): any;
-    dxMultiView(methodName: "instance"): DevExpress.ui.dxMultiView;
-    dxMap(options?: DevExpress.ui.dxMapOptions): JQuery;
-    dxMap(methodName: string, ...params: any[]): any;
-    dxMap(methodName: "instance"): DevExpress.ui.dxMap;
-    dxLookup(options?: DevExpress.ui.dxLookupOptions): JQuery;
-    dxLookup(methodName: string, ...params: any[]): any;
-    dxLookup(methodName: "instance"): DevExpress.ui.dxLookup;
-    dxLoadPanel(options?: DevExpress.ui.dxLoadPanelOptions): JQuery;
-    dxLoadPanel(methodName: string, ...params: any[]): any;
-    dxLoadPanel(methodName: "instance"): DevExpress.ui.dxLoadPanel;
-    dxLoadIndicator(options?: DevExpress.ui.dxLoadIndicatorOptions): JQuery;
-    dxLoadIndicator(methodName: string, ...params: any[]): any;
-    dxLoadIndicator(methodName: "instance"): DevExpress.ui.dxLoadIndicator;
-    dxList(options?: DevExpress.ui.dxListOptions): JQuery;
-    dxList(methodName: string, ...params: any[]): any;
-    dxList(methodName: "instance"): DevExpress.ui.dxList;
-    dxGallery(options?: DevExpress.ui.dxGalleryOptions): JQuery;
-    dxGallery(methodName: string, ...params: any[]): any;
-    dxGallery(methodName: "instance"): DevExpress.ui.dxGallery;
-    dxDropDownEditor(options?: DevExpress.ui.dxDropDownEditorOptions): JQuery;
-    dxDropDownEditor(methodName: string, ...params: any[]): any;
-    dxDropDownEditor(methodName: "instance"): DevExpress.ui.dxDropDownEditor;
-    dxDateBox(options?: DevExpress.ui.dxDateBoxOptions): JQuery;
-    dxDateBox(methodName: string, ...params: any[]): any;
-    dxDateBox(methodName: "instance"): DevExpress.ui.dxDateBox;    
-    dxCheckBox(options?: DevExpress.ui.dxCheckBoxOptions): JQuery;
-    dxCheckBox(methodName: string, ...params: any[]): any;
-    dxCheckBox(methodName: "instance"): DevExpress.ui.dxCheckBox;
-    dxBox(options?: DevExpress.ui.dxBoxOptions): JQuery;
-    dxBox(methodName: string, ...params: any[]): any;
-    dxBox(methodName: "instance"): DevExpress.ui.dxBox;
-    dxCalendar(options?: DevExpress.ui.dxCalendarOptions): JQuery;
-    dxCalendar(methodName: string, ...params: any[]): any;
-    dxCalendar(methodName: "instance"): DevExpress.ui.dxCalendar;
-    dxAccordion(options?: DevExpress.ui.dxAccordionOptions): JQuery;
-    dxAccordion(methodName: string, ...params: any[]): any;
-    dxAccordion(methodName: "instance"): DevExpress.ui.dxAccordion;
-    dxAutocomplete(options?: DevExpress.ui.dxAutocompleteOptions): JQuery;
-    dxAutocomplete(methodName: string, ...params: any[]): any;
-    dxAutocomplete(methodName: "instance"): DevExpress.ui.dxAutocomplete;
-    dxTileView(options?: DevExpress.ui.dxTileViewOptions): JQuery;
-    dxTileView(methodName: string, ...params: any[]): any;
-    dxTileView(methodName: "instance"): DevExpress.ui.dxTileView;
-    dxSwitch(options?: DevExpress.ui.dxSwitchOptions): JQuery;
-    dxSwitch(methodName: string, ...params: any[]): any;
-    dxSwitch(methodName: "instance"): DevExpress.ui.dxSwitch;
-    dxSlideOut(options?: DevExpress.ui.dxSlideoutOptions): JQuery;
-    dxSlideOut(methodName: string, ...params: any[]): any;
-    dxSlideOut(methodName: "instance"): DevExpress.ui.dxSlideOut;
-    dxPivot(options?: DevExpress.ui.dxPivotOptions): JQuery;
-    dxPivot(methodName: string, ...params: any[]): any;
-    dxPivot(methodName: "instance"): DevExpress.ui.dxPivot;
-    dxPanorama(options?: DevExpress.ui.dxPanoramaOptions): JQuery;
-    dxPanorama(methodName: string, ...params: any[]): any;
-    dxPanorama(methodName: "instance"): DevExpress.ui.dxPanorama;
-    dxActionSheet(options?: DevExpress.ui.dxActionSheetOptions): JQuery;
-    dxActionSheet(methodName: string, ...params: any[]): any;
-    dxActionSheet(methodName: "instance"): DevExpress.ui.dxActionSheet;
-    dxDropDownMenu(options?: DevExpress.ui.dxDropDownMenuOptions): JQuery;
-    dxDropDownMenu(methodName: string, ...params: any[]): any;
-    dxDropDownMenu(methodName: "instance"): DevExpress.ui.dxDropDownMenu;
-    dxTreeView(options?: DevExpress.ui.dxTreeViewOptions): JQuery;
-    dxTreeView(methodName: string, ...params: any[]): any;
-    dxTreeView(methodName: "instance"): DevExpress.ui.dxTreeView;
-    dxMenuBase(options?: DevExpress.ui.dxMenuBaseOptions): JQuery;
-    dxMenuBase(methodName: string, ...params: any[]): any;
-    dxMenuBase(methodName: "instance"): DevExpress.ui.dxMenuBase;
-	dxMenu(options?: DevExpress.ui.dxMenuOptions): JQuery;
-    dxMenu(methodName: string, ...params: any[]): any;
-    dxMenu(methodName: "instance"): DevExpress.ui.dxMenu;
-	dxContextMenu(options?: DevExpress.ui.dxContextMenuOptions): JQuery;
-    dxContextMenu(methodName: string, ...params: any[]): any;
-    dxContextMenu(methodName: "instance"): DevExpress.ui.dxContextMenu;
-    dxColorBox(options?: DevExpress.ui.dxColorBoxOptions): JQuery;
-    dxColorBox(methodName: string, ...params: any[]): any;
-    dxColorBox(methodName: "instance"): DevExpress.ui.dxColorBox;
-    dxDataGrid(options?: DevExpress.ui.dxDataGridOptions): JQuery;
-    dxDataGrid(methodName: string, ...params: any[]): any;
-    dxDataGrid(methodName: "instance"): DevExpress.ui.dxDataGrid;
-    dxChart(options?: DevExpress.viz.charts.ChartOptions): JQuery;
+    dxValidationSummary(options: "instance"): DevExpress.ui.dxValidationSummary;
+    dxValidationSummary(options: string): any;
+    dxValidationSummary(options: string, ...params: any[]): any;
+    dxTooltip(): JQuery;
+    dxTooltip(options: "instance"): DevExpress.ui.dxTooltip;
+    dxTooltip(options: string): any;
+    dxTooltip(options: string, ...params: any[]): any;
+    dxTooltip(options: DevExpress.ui.dxTooltipOptions): JQuery;
+    dxDropDownList(): JQuery;
+    dxDropDownList(options: "instance"): DevExpress.ui.dxDropDownList;
+    dxDropDownList(options: string): any;
+    dxDropDownList(options: string, ...params: any[]): any;
+    dxDropDownList(options: DevExpress.ui.dxDropDownListOptions): JQuery;
+    dxToolbar(): JQuery;
+    dxToolbar(options: "instance"): DevExpress.ui.dxToolbar;
+    dxToolbar(options: string): any;
+    dxToolbar(options: string, ...params: any[]): any;
+    dxToolbar(options: DevExpress.ui.dxToolbarOptions): JQuery;
+    dxToast(): JQuery;
+    dxToast(options: "instance"): DevExpress.ui.dxToast;
+    dxToast(options: string): any;
+    dxToast(options: string, ...params: any[]): any;
+    dxToast(options: DevExpress.ui.dxToastOptions): JQuery;
+    dxTextEditor(): JQuery;
+    dxTextEditor(options: "instance"): DevExpress.ui.dxTextEditor;
+    dxTextEditor(options: string): any;
+    dxTextEditor(options: string, ...params: any[]): any;
+    dxTextEditor(options: DevExpress.ui.dxTextEditorOptions): JQuery;
+    dxTextBox(): JQuery;
+    dxTextBox(options: "instance"): DevExpress.ui.dxTextBox;
+    dxTextBox(options: string): any;
+    dxTextBox(options: string, ...params: any[]): any;
+    dxTextBox(options: DevExpress.ui.dxTextBoxOptions): JQuery;
+    dxTextArea(): JQuery;
+    dxTextArea(options: "instance"): DevExpress.ui.dxTextArea;
+    dxTextArea(options: string): any;
+    dxTextArea(options: string, ...params: any[]): any;
+    dxTextArea(options: DevExpress.ui.dxTextAreaOptions): JQuery;
+    dxTabs(): JQuery;
+    dxTabs(options: "instance"): DevExpress.ui.dxTabs;
+    dxTabs(options: string): any;
+    dxTabs(options: string, ...params: any[]): any;
+    dxTabs(options: DevExpress.ui.dxTabsOptions): JQuery;
+    dxTabPanel(): JQuery;
+    dxTabPanel(options: "instance"): DevExpress.ui.dxTabPanel;
+    dxTabPanel(options: string): any;
+    dxTabPanel(options: string, ...params: any[]): any;
+    dxTabPanel(options: DevExpress.ui.dxTabPanelOptions): JQuery;
+    dxSelectBox(): JQuery;
+    dxSelectBox(options: "instance"): DevExpress.ui.dxSelectBox;
+    dxSelectBox(options: string): any;
+    dxSelectBox(options: string, ...params: any[]): any;
+    dxSelectBox(options: DevExpress.ui.dxSelectBoxOptions): JQuery;
+    dxScrollView(): JQuery;
+    dxScrollView(options: "instance"): DevExpress.ui.dxScrollView;
+    dxScrollView(options: string): any;
+    dxScrollView(options: string, ...params: any[]): any;
+    dxScrollView(options: DevExpress.ui.dxScrollViewOptions): JQuery;
+    dxScrollable(): JQuery;
+    dxScrollable(options: "instance"): DevExpress.ui.dxScrollable;
+    dxScrollable(options: string): any;
+    dxScrollable(options: string, ...params: any[]): any;
+    dxScrollable(options: DevExpress.ui.dxScrollableOptions): JQuery;
+    dxRadioGroup(): JQuery;
+    dxRadioGroup(options: "instance"): DevExpress.ui.dxRadioGroup;
+    dxRadioGroup(options: string): any;
+    dxRadioGroup(options: string, ...params: any[]): any;
+    dxRadioGroup(options: DevExpress.ui.dxRadioGroupOptions): JQuery;
+    dxPopup(): JQuery;
+    dxPopup(options: "instance"): DevExpress.ui.dxPopup;
+    dxPopup(options: string): any;
+    dxPopup(options: string, ...params: any[]): any;
+    dxPopup(options: DevExpress.ui.dxPopupOptions): JQuery;
+    dxPopover(): JQuery;
+    dxPopover(options: "instance"): DevExpress.ui.dxPopover;
+    dxPopover(options: string): any;
+    dxPopover(options: string, ...params: any[]): any;
+    dxPopover(options: DevExpress.ui.dxPopoverOptions): JQuery;
+    dxOverlay(): JQuery;
+    dxOverlay(options: "instance"): DevExpress.ui.dxOverlay;
+    dxOverlay(options: string): any;
+    dxOverlay(options: string, ...params: any[]): any;
+    dxOverlay(options: DevExpress.ui.dxOverlayOptions): JQuery;
+    dxNumberBox(): JQuery;
+    dxNumberBox(options: "instance"): DevExpress.ui.dxNumberBox;
+    dxNumberBox(options: string): any;
+    dxNumberBox(options: string, ...params: any[]): any;
+    dxNumberBox(options: DevExpress.ui.dxNumberBoxOptions): JQuery;
+    dxNavBar(): JQuery;
+    dxNavBar(options: "instance"): DevExpress.ui.dxNavBar;
+    dxNavBar(options: string): any;
+    dxNavBar(options: string, ...params: any[]): any;
+    dxNavBar(options: DevExpress.ui.dxNavBarOptions): JQuery;
+    dxMultiView(): JQuery;
+    dxMultiView(options: "instance"): DevExpress.ui.dxMultiView;
+    dxMultiView(options: string): any;
+    dxMultiView(options: string, ...params: any[]): any;
+    dxMultiView(options: DevExpress.ui.dxMultiViewOptions): JQuery;
+    dxMap(): JQuery;
+    dxMap(options: "instance"): DevExpress.ui.dxMap;
+    dxMap(options: string): any;
+    dxMap(options: string, ...params: any[]): any;
+    dxMap(options: DevExpress.ui.dxMapOptions): JQuery;
+    dxLookup(): JQuery;
+    dxLookup(options: "instance"): DevExpress.ui.dxLookup;
+    dxLookup(options: string): any;
+    dxLookup(options: string, ...params: any[]): any;
+    dxLookup(options: DevExpress.ui.dxLookupOptions): JQuery;
+    dxLoadPanel(): JQuery;
+    dxLoadPanel(options: "instance"): DevExpress.ui.dxLoadPanel;
+    dxLoadPanel(options: string): any;
+    dxLoadPanel(options: string, ...params: any[]): any;
+    dxLoadPanel(options: DevExpress.ui.dxLoadPanelOptions): JQuery;
+    dxLoadIndicator(): JQuery;
+    dxLoadIndicator(options: "instance"): DevExpress.ui.dxLoadIndicator;
+    dxLoadIndicator(options: string): any;
+    dxLoadIndicator(options: string, ...params: any[]): any;
+    dxLoadIndicator(options: DevExpress.ui.dxLoadIndicatorOptions): JQuery;
+    dxList(): JQuery;
+    dxList(options: "instance"): DevExpress.ui.dxList;
+    dxList(options: string): any;
+    dxList(options: string, ...params: any[]): any;
+    dxList(options: DevExpress.ui.dxListOptions): JQuery;
+    dxGallery(): JQuery;
+    dxGallery(options: "instance"): DevExpress.ui.dxGallery;
+    dxGallery(options: string): any;
+    dxGallery(options: string, ...params: any[]): any;
+    dxGallery(options: DevExpress.ui.dxGalleryOptions): JQuery;
+    dxDropDownEditor(): JQuery;
+    dxDropDownEditor(options: "instance"): DevExpress.ui.dxDropDownEditor;
+    dxDropDownEditor(options: string): any;
+    dxDropDownEditor(options: string, ...params: any[]): any;
+    dxDropDownEditor(options: DevExpress.ui.dxDropDownEditorOptions): JQuery;
+    dxDateBox(): JQuery;
+    dxDateBox(options: "instance"): DevExpress.ui.dxDateBox;
+    dxDateBox(options: string): any;
+    dxDateBox(options: string, ...params: any[]): any;
+    dxDateBox(options: DevExpress.ui.dxDateBoxOptions): JQuery;
+    dxCheckBox(): JQuery;
+    dxCheckBox(options: "instance"): DevExpress.ui.dxCheckBox;
+    dxCheckBox(options: string): any;
+    dxCheckBox(options: string, ...params: any[]): any;
+    dxCheckBox(options: DevExpress.ui.dxCheckBoxOptions): JQuery;
+    dxBox(): JQuery;
+    dxBox(options: "instance"): DevExpress.ui.dxBox;
+    dxBox(options: string): any;
+    dxBox(options: string, ...params: any[]): any;
+    dxBox(options: DevExpress.ui.dxBoxOptions): JQuery;
+    dxButton(): JQuery;
+    dxButton(options: "instance"): DevExpress.ui.dxButton;
+    dxButton(options: string): any;
+    dxButton(options: string, ...params: any[]): any;
+    dxButton(options: DevExpress.ui.dxButtonOptions): JQuery;
+    dxCalendar(): JQuery;
+    dxCalendar(options: "instance"): DevExpress.ui.dxCalendar;
+    dxCalendar(options: string): any;
+    dxCalendar(options: string, ...params: any[]): any;
+    dxCalendar(options: DevExpress.ui.dxCalendarOptions): JQuery;
+    dxAccordion(): JQuery;
+    dxAccordion(options: "instance"): DevExpress.ui.dxAccordion;
+    dxAccordion(options: string): any;
+    dxAccordion(options: string, ...params: any[]): any;
+    dxAccordion(options: DevExpress.ui.dxAccordionOptions): JQuery;
+    dxAutocomplete(): JQuery;
+    dxAutocomplete(options: "instance"): DevExpress.ui.dxAutocomplete;
+    dxAutocomplete(options: string): any;
+    dxAutocomplete(options: string, ...params: any[]): any;
+    dxAutocomplete(options: DevExpress.ui.dxAutocompleteOptions): JQuery;
+    dxTileView(): JQuery;
+    dxTileView(options: "instance"): DevExpress.ui.dxTileView;
+    dxTileView(options: string): any;
+    dxTileView(options: string, ...params: any[]): any;
+    dxTileView(options: DevExpress.ui.dxTileViewOptions): JQuery;
+    dxSwitch(): JQuery;
+    dxSwitch(options: "instance"): DevExpress.ui.dxSwitch;
+    dxSwitch(options: string): any;
+    dxSwitch(options: string, ...params: any[]): any;
+    dxSwitch(options: DevExpress.ui.dxSwitchOptions): JQuery;
+    dxSlideOut(): JQuery;
+    dxSlideOut(options: "instance"): DevExpress.ui.dxSlideOut;
+    dxSlideOut(options: string): any;
+    dxSlideOut(options: string, ...params: any[]): any;
+    dxSlideOut(options: DevExpress.ui.dxSlideOutOptions): JQuery;
+    dxPivot(): JQuery;
+    dxPivot(options: "instance"): DevExpress.ui.dxPivot;
+    dxPivot(options: string): any;
+    dxPivot(options: string, ...params: any[]): any;
+    dxPivot(options: DevExpress.ui.dxPivotOptions): JQuery;
+    dxPanorama(): JQuery;
+    dxPanorama(options: "instance"): DevExpress.ui.dxPanorama;
+    dxPanorama(options: string): any;
+    dxPanorama(options: string, ...params: any[]): any;
+    dxPanorama(options: DevExpress.ui.dxPanoramaOptions): JQuery;
+    dxActionSheet(): JQuery;
+    dxActionSheet(options: "instance"): DevExpress.ui.dxActionSheet;
+    dxActionSheet(options: string): any;
+    dxActionSheet(options: string, ...params: any[]): any;
+    dxActionSheet(options: DevExpress.ui.dxActionSheetOptions): JQuery;
+    dxDropDownMenu(): JQuery;
+    dxDropDownMenu(options: "instance"): DevExpress.ui.dxDropDownMenu;
+    dxDropDownMenu(options: string): any;
+    dxDropDownMenu(options: string, ...params: any[]): any;
+    dxDropDownMenu(options: DevExpress.ui.dxDropDownMenuOptions): JQuery;
+    dxTreeView(): JQuery;
+    dxTreeView(options: "instance"): DevExpress.ui.dxTreeView;
+    dxTreeView(options: string): any;
+    dxTreeView(options: string, ...params: any[]): any;
+    dxTreeView(options: DevExpress.ui.dxTreeViewOptions): JQuery;
+    dxMenuBase(): JQuery;
+    dxMenuBase(options: "instance"): DevExpress.ui.dxMenuBase;
+    dxMenuBase(options: string): any;
+    dxMenuBase(options: string, ...params: any[]): any;
+    dxMenuBase(options: DevExpress.ui.dxMenuBaseOptions): JQuery;
+    dxMenu(): JQuery;
+    dxMenu(options: "instance"): DevExpress.ui.dxMenu;
+    dxMenu(options: string): any;
+    dxMenu(options: string, ...params: any[]): any;
+    dxMenu(options: DevExpress.ui.dxMenuOptions): JQuery;
+    dxContextMenu(): JQuery;
+    dxContextMenu(options: "instance"): DevExpress.ui.dxContextMenu;
+    dxContextMenu(options: string): any;
+    dxContextMenu(options: string, ...params: any[]): any;
+    dxContextMenu(options: DevExpress.ui.dxContextMenuOptions): JQuery;
+    dxColorBox(): JQuery;
+    dxColorBox(options: "instance"): DevExpress.ui.dxColorBox;
+    dxColorBox(options: string): any;
+    dxColorBox(options: string, ...params: any[]): any;
+    dxColorBox(options: DevExpress.ui.dxColorBoxOptions): JQuery;
+    dxDataGrid(): JQuery;
+    dxDataGrid(options: "instance"): DevExpress.ui.dxDataGrid;
+    dxDataGrid(options: string): any;
+    dxDataGrid(options: string, ...params: any[]): any;
+    dxDataGrid(options: DevExpress.ui.dxDataGridOptions): JQuery;
+    dxChart(options?: DevExpress.viz.charts.dxChartOptions): JQuery;
     dxChart(methodName: string, ...params: any[]): any;
     dxChart(methodName: "instance"): DevExpress.viz.charts.dxChart;
-    dxPieChart(options?: DevExpress.viz.charts.PieChartOptions): JQuery;
+    dxPieChart(options?: DevExpress.viz.charts.dxPieChartOptions): JQuery;
     dxPieChart(methodName: string, ...params: any[]): any;
     dxPieChart(methodName: "instance"): DevExpress.viz.charts.dxPieChart;
-    dxLinearGauge(options?: DevExpress.viz.gauges.LinearGaugeOptions): JQuery;
+    dxPolarChart(options?: DevExpress.viz.charts.dxPolarChartOptions): JQuery;
+    dxPolarChart(methodName: string, ...params: any[]): any;
+    dxPolarChart(methodName: "instance"): DevExpress.viz.charts.dxPolarChart;
+    dxLinearGauge(options?: DevExpress.viz.gauges.dxLinearGaugeOptions): JQuery;
     dxLinearGauge(methodName: string, ...params: any[]): any;
     dxLinearGauge(methodName: "instance"): DevExpress.viz.gauges.dxLinearGauge;
-    dxCircularGauge(options?: DevExpress.viz.gauges.CircularGaugeOptions): JQuery;
+    dxCircularGauge(options?: DevExpress.viz.gauges.dxCircularGaugeOptions): JQuery;
     dxCircularGauge(methodName: string, ...params: any[]): any;
     dxCircularGauge(methodName: "instance"): DevExpress.viz.gauges.dxCircularGauge;
-    dxBarGauge(options?: DevExpress.viz.gauges.BarGaugeOptions): JQuery;
+    dxBarGauge(options?: DevExpress.viz.gauges.dxBarGaugeOptions): JQuery;
     dxBarGauge(methodName: string, ...params: any[]): any;
     dxBarGauge(methodName: "instance"): DevExpress.viz.gauges.dxBarGauge;
-    dxRangeSelector(options?: DevExpress.viz.rangeSelector.RangeSelectorOptions): JQuery;
+    dxRangeSelector(options?: DevExpress.viz.rangeSelector.dxRangeSelectorOptions): JQuery;
     dxRangeSelector(methodName: string, ...params: any[]): any;
     dxRangeSelector(methodName: "instance"): DevExpress.viz.rangeSelector.dxRangeSelector;
-    dxVectorMap(options?: DevExpress.viz.map.VectorMapOptions): JQuery;
+    dxVectorMap(options?: DevExpress.viz.map.dxVectorMapOptions): JQuery;
     dxVectorMap(methodName: string, ...params: any[]): any;
     dxVectorMap(methodName: "instance"): DevExpress.viz.map.dxVectorMap;
-    dxBullet(options?: DevExpress.viz.sparklines.BulletOptions): JQuery;
+    dxBullet(options?: DevExpress.viz.sparklines.dxBulletOptions): JQuery;
     dxBullet(methodName: string, ...params: any[]): any;
     dxBullet(methodName: "instance"): DevExpress.viz.sparklines.dxBullet;
-    dxSparkline(options?: DevExpress.viz.sparklines.SparklineOptions): JQuery;
+    dxSparkline(options?: DevExpress.viz.sparklines.dxSparklineOptions): JQuery;
     dxSparkline(methodName: string, ...params: any[]): any;
     dxSparkline(methodName: "instance"): DevExpress.viz.sparklines.dxSparkline;
 }

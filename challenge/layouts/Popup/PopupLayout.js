@@ -73,7 +73,7 @@
             this.callBase(options);
             this._popup = this._$mainLayout.find(".popup-container").dxPopup("instance");
             if (this._targetContainer)
-                this._popup.option("targetContainer", this._targetContainer)
+                this._popup.option("container", this._targetContainer)
         },
         _showContainerWidget: function() {
             return this._popup.show()
